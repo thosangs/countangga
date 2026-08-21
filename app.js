@@ -34,8 +34,10 @@ const PARTS = {
   }
 };
 
-let activePart = "floorHeight";
+let activePart = null;
 let framed = false;
+let userMoved = false;
+let focusBox = null;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd4f1ee);
@@ -57,8 +59,6 @@ viewer.append(labels.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.minDistance = 3;
-controls.maxDistance = 22;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x4a6268, 2));
 const sun = new THREE.DirectionalLight(0xffffff, 2.6);
@@ -157,7 +157,7 @@ function assess(r) {
 
 function updateText(r) {
   const fails = assess(r);
-  $("riseCount").textContent = r.rises;
+  $("riseCount").textContent = r.treadCount;
   $("riserHeight").textContent = `${format(r.riser)} cm`;
   $("treadResult").textContent = `${format(r.tread)} cm`;
   $("pitch").textContent = `${format(r.pitch, 0)}°`;
@@ -186,9 +186,9 @@ function tag(object, keys) {
   return object;
 }
 
-function addLabel(text, x, y, z, keys) {
+function addLabel(text, x, y, z, keys, className = "label3d") {
   const el = document.createElement("div");
-  el.className = "label3d";
+  el.className = className;
   el.textContent = text;
   const label = new CSS2DObject(el);
   label.position.set(x, y, z);
@@ -240,13 +240,12 @@ function buildModel(r) {
   const H = r.height * s;
   const gap = 0.15;
 
-  makeBox(8, 0.04, 8, 0xd9d4c6, 1.6, 0.02, -0.8, ["floor1"]);
-
   const openingL = r.opening * s;
   const openingW = r.footprintWidth * s;
   const openZ = r.angle === 90 ? -openingW / 2 + w / 2 : -(openingW / 2 - w / 2);
   const openX = openingL / 2;
 
+  makeBox(openingL + 1.6, 0.04, openingW + 1.6, 0xd9d4c6, openX, 0.02, openZ, ["floor1"]);
   makeBox(openingL + 1.6, 0.05, 0.45, 0xc8c3b5, openX, H, openZ + openingW / 2 + 0.22, ["floor2"]);
   makeBox(openingL + 1.6, 0.05, 0.45, 0xc8c3b5, openX, H, openZ - openingW / 2 - 0.22, ["floor2"]);
   makeBox(0.45, 0.05, openingW + 0.9, 0xc8c3b5, openX - openingL / 2 - 0.22, H, openZ, ["floor2"]);
@@ -274,6 +273,7 @@ function buildModel(r) {
     const x = i * tread + tread / 2;
     const keys = i === 0 ? ["step", "run1", "tread", "width"] : ["step", "run1"];
     makeBox(tread, y, w, 0x20c7c7, x, y / 2, 0, keys);
+    addLabel(String(i + 1), x, y + 0.03, w / 2 - 0.04, keys, "step-num");
   }
 
   const landingX = r.turnAt * tread + w / 2;
@@ -286,6 +286,7 @@ function buildModel(r) {
       const y = (r.turnAt + j + 1) * rise;
       const z = -(w / 2 + j * tread + tread / 2);
       makeBox(w, y, tread, 0x20c7c7, landingX, y / 2, z, ["step", "run2"]);
+      addLabel(String(r.turnAt + j + 1), landingX + w / 2 - 0.04, y + 0.03, z, ["step", "run2"], "step-num");
     }
   } else {
     const returnZ = -(w + gap);
@@ -293,6 +294,7 @@ function buildModel(r) {
       const y = (r.turnAt + j + 1) * rise;
       const x = landingX + w / 2 - j * tread - tread / 2;
       makeBox(tread, y, w, 0x20c7c7, x, y / 2, returnZ, ["step", "run2"]);
+      addLabel(String(r.turnAt + j + 1), x, y + 0.03, returnZ, ["step", "run2"], "step-num");
     }
     makeBox(w, Math.max(landingY, 0.06), w + gap, 0xffd84d, landingX, landingY / 2, returnZ / 2, ["landing"]);
   }
@@ -312,15 +314,21 @@ function buildModel(r) {
   addLabel(`pijakan ${format(r.tread)} cm`, tread / 2, rise + 0.22, -w / 2 - 0.2, ["tread"]);
 
   applyHighlight();
-  if (!framed) frameCamera();
+  focusBox = new THREE.Box3(
+    new THREE.Vector3(-0.3, 0, Math.min(openZ - openingW / 2, -w)),
+    new THREE.Vector3(Math.max(openingL, landingX + w / 2), H, Math.max(w, 0.6))
+  );
+  if (!framed) frameCamera(focusBox);
 }
 
 function applyHighlight() {
-  const keys = PARTS[activePart]?.keys || [];
-  caption.textContent = PARTS[activePart]?.caption || "Klik field untuk lihat bagiannya";
+  const part = PARTS[activePart];
+  const keys = part?.keys || [];
+  caption.textContent = part?.caption || "Semua bagian tampil — hover field untuk fokus";
   model.traverse((object) => {
     const parts = object.userData.parts;
-    const on = !parts || parts.some((part) => keys.includes(part));
+    const measure = object.element?.classList.contains("label3d");
+    const on = !part || !parts || parts.some((key) => keys.includes(key));
     const opacity = on ? 1 : 0.16;
     if (object.material) {
       const mats = Array.isArray(object.material) ? object.material : [object.material];
@@ -329,44 +337,56 @@ function applyHighlight() {
           mat.transparent = true;
           mat.opacity = opacity;
         }
-        if (mat.emissive) mat.emissive.setHex(on && parts ? 0x123333 : 0x000000);
+        if (mat.emissive) mat.emissive.setHex(part && on && parts ? 0x123333 : 0x000000);
       });
     }
-    if (object.element) object.element.style.opacity = on ? "1" : "0.18";
+    if (object.element) {
+      object.element.style.opacity = on ? "1" : "0.18";
+      if (measure) object.visible = Boolean(part) && on;
+    }
   });
 }
 
-function frameCamera() {
-  const box = new THREE.Box3().setFromObject(model);
+function frameCamera(box) {
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
+  const radius = Math.max(size.x, size.y, size.z) * 0.62;
+  const fov = (camera.fov * Math.PI) / 180;
+  const dist = (radius / Math.tan(fov / 2)) / Math.min(1, camera.aspect || 1);
+
   controls.target.copy(center);
-  const dist = Math.max(size.x, size.y, size.z) * 2.15;
-  camera.position.set(center.x + dist * 0.85, center.y + dist * 0.55, center.z + dist * 0.9);
-  camera.near = Math.max(dist / 80, 0.05);
-  camera.far = dist * 20;
+  controls.minDistance = dist * 0.35;
+  controls.maxDistance = dist * 3;
+  camera.position.set(center.x + dist * 0.62, center.y + dist * 0.72, center.z + dist * 0.72);
+  camera.near = Math.max(dist / 100, 0.05);
+  camera.far = dist * 30;
   camera.updateProjectionMatrix();
+  controls.update();
   framed = true;
 }
 
 function setActive(part) {
-  if (!PARTS[part]) return;
-  activePart = part;
+  activePart = PARTS[part] ? part : null;
   document.querySelectorAll(".field").forEach((field) => {
-    field.classList.toggle("is-active", field.dataset.part === part);
+    field.classList.toggle("is-active", field.dataset.part === activePart);
   });
   applyHighlight();
 }
 
 function update() {
   if (!form.reportValidity()) return;
-  updateText(calculate(readInputs()));
-  buildModel(calculate(readInputs()));
+  const result = calculate(readInputs());
+  updateText(result);
+  buildModel(result);
 }
+
+controls.addEventListener("start", () => { userMoved = true; });
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   framed = false;
+  userMoved = false;
+  setActive(null);
   update();
 });
 
@@ -381,13 +401,23 @@ form.querySelectorAll(".field").forEach((field) => {
   field.addEventListener("focusin", activate);
 });
 
+form.addEventListener("pointerleave", () => {
+  if (!form.contains(document.activeElement)) setActive(null);
+});
+
+form.addEventListener("focusout", (event) => {
+  if (!form.contains(event.relatedTarget)) setActive(null);
+});
+
 function resize() {
   const width = viewer.clientWidth;
   const height = viewer.clientHeight;
+  if (!width || !height) return;
   renderer.setSize(width, height, false);
   labels.setSize(width, height);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
+  if (focusBox && !userMoved) frameCamera(focusBox);
 }
 new ResizeObserver(resize).observe(viewer);
 
@@ -398,7 +428,7 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-setActive("floorHeight");
+setActive(null);
 resize();
 update();
 animate();
