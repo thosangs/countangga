@@ -64,7 +64,7 @@ button, input, select { font: inherit; color: inherit; }
 
 form {
   display: grid;
-  gap: 10px;
+  gap: 7px;
   padding: 12px;
 }
 .field {
@@ -116,6 +116,15 @@ button {
   box-shadow: 3px 3px 0 var(--ink);
 }
 button:active { translate: 3px 3px; box-shadow: none; }
+.second-landing {
+  display: grid;
+  gap: 7px;
+  padding-top: 7px;
+  border-top: 2px dashed var(--ink);
+}
+.second-landing[hidden],
+.single-landing-only[hidden],
+.landing-only[hidden] { display: none; }
 
 .viewer-head {
   display: flex;

@@ -1,6 +1,6 @@
 # Countangga
 
-Kalkulator tangga rumah: `index.html`, `styles.css`, `app.js`. Klik field input untuk menyorot bagian tangga di model 3D. Menghitung jumlah anak tangga, ukuran pijakan, belokan, dan cek kenyamanan dasar.
+Kalkulator tangga rumah: `index.html`, `styles.css`, `app.js`. Klik field input untuk menyorot bagian tangga di model 3D. Mendukung tangga lurus tanpa bordes, atau satu hingga dua bordes dengan nomor anak tangga, ketinggian absolut, dan arah belok masing-masing.
 
 ## Menjalankan lokal
 

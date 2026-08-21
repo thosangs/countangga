@@ -45,27 +45,65 @@
             <em>cm</em>
           </span>
         </label>
-        <label class="field" data-part="turnAngle">
+        <label class="field" data-part="landingCount">
+          <span>Jumlah bordes</span>
+          <select id="landingCount">
+            <option value="0">Tanpa bordes — lurus</option>
+            <option value="1" selected>1 bordes</option>
+            <option value="2">2 bordes</option>
+          </select>
+        </label>
+        <label class="field landing-only single-landing-only" data-part="turnAngle">
           <span>Bentuk belok</span>
           <select id="turnAngle">
             <option value="90">L — belok 90°</option>
             <option value="180">U — belok 180°</option>
           </select>
         </label>
-        <label class="field" data-part="turnDir">
-          <span>Arah belok</span>
+        <label class="field landing-only" data-part="turnDir">
+          <span>Arah belok 1</span>
           <select id="turnDir">
             <option value="1">Kanan</option>
             <option value="-1">Kiri</option>
           </select>
         </label>
-        <label class="field" data-part="turnStep">
-          <span>Bordes di anak ke-</span>
+        <label class="field landing-only" data-part="turnStep">
+          <span>Bordes 1 di anak ke-</span>
           <span class="input-wrap">
-            <input id="turnStep" type="number" min="2" max="30" step="1" value="9" required />
+            <input id="turnStep" type="number" min="2" max="30" step="1" value="3" required />
             <em>anak</em>
           </span>
         </label>
+        <label class="field landing-only" data-part="landingHeight">
+          <span>Tinggi bordes 1</span>
+          <span class="input-wrap">
+            <input id="landingHeight" type="number" min="20" max="580" step="1" value="60" required />
+            <em>cm</em>
+          </span>
+        </label>
+        <div class="second-landing" id="secondLanding" hidden>
+          <label class="field" data-part="turnDir2">
+            <span>Arah belok 2</span>
+            <select id="turnDir2">
+              <option value="-1">Kiri</option>
+              <option value="1">Kanan</option>
+            </select>
+          </label>
+          <label class="field" data-part="turnStep2">
+            <span>Bordes 2 di anak ke-</span>
+            <span class="input-wrap">
+              <input id="turnStep2" type="number" min="4" max="40" step="1" value="10" />
+              <em>anak</em>
+            </span>
+          </label>
+          <label class="field" data-part="landingHeight2">
+            <span>Tinggi bordes 2</span>
+            <span class="input-wrap">
+              <input id="landingHeight2" type="number" min="40" max="590" step="1" value="180" />
+              <em>cm</em>
+            </span>
+          </label>
+        </div>
         <button type="submit">Hitung</button>
       </form>
     </section>
@@ -82,7 +120,7 @@
       <div class="verdict" id="verdict">Ideal</div>
       <div class="metrics">
         <div><small>Anak tangga</small><b id="riseCount">18</b></div>
-        <div><small>Tinggi anak</small><b id="riserHeight">17,8 cm</b></div>
+        <div><small>Tinggi / segmen</small><b id="riserHeight">20 / 17,8 cm</b></div>
         <div><small>Pijakan</small><b id="treadResult">27 cm</b></div>
         <div><small>Kemiringan</small><b id="pitch">33°</b></div>
         <div><small>2T + L</small><b id="blondel">63 cm</b></div>
