@@ -211,6 +211,27 @@ function buildPlan(data, landings, treadCount) {
   };
 }
 
+// Cari jumlah kenaikan yang paling dekat dengan tinggi nyaman 17,5 cm
+// sekaligus rumus Blondel 2T+L = 63 cm, bukan sekadar pembulatan.
+function bestRiseCount(rise, tread) {
+  const start = Math.max(1, Math.round(rise / 17.5));
+  let bestCount = start;
+  let bestScore = Infinity;
+
+  for (let count = Math.max(1, start - 4); count <= start + 4; count++) {
+    const riser = rise / count;
+    const blondel = 2 * riser + tread;
+    const penalty = riser < 15 || riser > 19 ? 30 : 0;
+    const score = Math.abs(riser - 17.5) * 2 + Math.abs(blondel - 63) + penalty;
+    if (score < bestScore - 1e-9) {
+      bestScore = score;
+      bestCount = count;
+    }
+  }
+
+  return bestCount;
+}
+
 function calculate(data) {
   const landings = data.landings.map((landing) => ({ ...landing }));
   const inputIssues = [];
@@ -233,7 +254,7 @@ function calculate(data) {
   }
 
   const last = landings.at(-1) || { step: 0, height: 0 };
-  const finalRiseCount = Math.max(1, Math.round((data.height - last.height) / 17.5));
+  const finalRiseCount = bestRiseCount(data.height - last.height, data.tread);
   const rises = last.step + finalRiseCount;
   const treadCount = rises - 1;
   const points = [
