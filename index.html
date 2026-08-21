@@ -3,452 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Kalkulator tangga rumah dengan pemeriksaan kenyamanan dan visualisasi 3D." />
-  <title>Countangga — Kalkulator Tangga Rumah</title>
-  <style>
-    :root {
-      --ink: #111827;
-      --paper: #f3f0e8;
-      --blue: #20c7c7;
-      --blue-dark: #087f8c;
-      --yellow: #ffd84d;
-      --red: #ff6b5e;
-      --white: #fffdf7;
-      --shadow: 6px 6px 0 var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        linear-gradient(rgba(17, 24, 39, .06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(17, 24, 39, .06) 1px, transparent 1px),
-        var(--paper);
-      background-size: 24px 24px;
-    }
-    button, input, select { font: inherit; }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px clamp(16px, 4vw, 56px);
-      background: var(--blue);
-      border-bottom: 3px solid var(--ink);
-    }
-    .brand {
-      font-size: clamp(1.15rem, 2vw, 1.55rem);
-      font-weight: 950;
-      letter-spacing: -.05em;
-      text-transform: uppercase;
-    }
-    .tag {
-      padding: 5px 10px;
-      border: 2px solid var(--ink);
-      background: var(--white);
-      font-size: .72rem;
-      font-weight: 850;
-      text-transform: uppercase;
-      box-shadow: 3px 3px 0 var(--ink);
-    }
-
-    main {
-      width: min(1420px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 44px 0 64px;
-    }
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
-      gap: 28px;
-      align-items: end;
-      margin-bottom: 34px;
-    }
-    h1 {
-      max-width: 900px;
-      margin: 0;
-      font-size: clamp(2.6rem, 7vw, 6.9rem);
-      line-height: .86;
-      letter-spacing: -.075em;
-      text-transform: uppercase;
-    }
-    .hero p {
-      margin: 0;
-      padding: 18px;
-      border: 3px solid var(--ink);
-      background: var(--yellow);
-      box-shadow: var(--shadow);
-      font-weight: 750;
-      line-height: 1.5;
-      transform: rotate(1deg);
-    }
-
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
-      gap: 24px;
-      align-items: start;
-    }
-    .panel {
-      border: 3px solid var(--ink);
-      background: var(--white);
-      box-shadow: var(--shadow);
-    }
-    .panel-title {
-      margin: 0;
-      padding: 13px 16px;
-      border-bottom: 3px solid var(--ink);
-      background: var(--ink);
-      color: var(--white);
-      font-size: .92rem;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-    .form-body { padding: 20px; }
-    .field-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .field { min-width: 0; }
-    .field.full { grid-column: 1 / -1; }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: .76rem;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .input-wrap { position: relative; }
-    input, select {
-      width: 100%;
-      min-height: 48px;
-      padding: 10px 44px 10px 12px;
-      border: 2px solid var(--ink);
-      border-radius: 0;
-      outline: none;
-      background: #fff;
-      color: var(--ink);
-      font-weight: 800;
-    }
-    select { padding-right: 10px; }
-    input:focus, select:focus {
-      background: #e7ffff;
-      box-shadow: 3px 3px 0 var(--blue);
-    }
-    .unit {
-      position: absolute;
-      top: 50%;
-      right: 12px;
-      translate: 0 -50%;
-      font-size: .7rem;
-      font-weight: 900;
-      color: #5c6470;
-      pointer-events: none;
-    }
-    .hint {
-      display: block;
-      margin-top: 5px;
-      color: #626975;
-      font-size: .68rem;
-      line-height: 1.35;
-    }
-    .calculate {
-      width: 100%;
-      margin-top: 20px;
-      padding: 14px 18px;
-      border: 3px solid var(--ink);
-      border-radius: 0;
-      background: var(--blue);
-      color: var(--ink);
-      font-weight: 950;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 4px 4px 0 var(--ink);
-      transition: transform .12s, box-shadow .12s;
-    }
-    .calculate:hover { background: #39dcdc; }
-    .calculate:active { transform: translate(4px, 4px); box-shadow: none; }
-
-    .results { display: grid; gap: 24px; min-width: 0; }
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border-bottom: 3px solid var(--ink);
-    }
-    .metric {
-      min-width: 0;
-      padding: 18px 14px;
-      border-right: 3px solid var(--ink);
-    }
-    .metric:last-child { border-right: 0; }
-    .metric small {
-      display: block;
-      min-height: 2.1em;
-      font-size: .65rem;
-      font-weight: 900;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .metric strong {
-      display: block;
-      margin-top: 6px;
-      font-size: clamp(1.45rem, 3vw, 2.35rem);
-      line-height: 1;
-      letter-spacing: -.055em;
-      overflow-wrap: anywhere;
-    }
-    .status-row {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      border-bottom: 3px solid var(--ink);
-    }
-    .verdict {
-      display: grid;
-      place-items: center;
-      padding: 18px;
-      border-right: 3px solid var(--ink);
-      background: var(--blue);
-      font-size: 1.25rem;
-      font-weight: 950;
-      text-align: center;
-      text-transform: uppercase;
-    }
-    .verdict.warn { background: var(--yellow); }
-    .verdict.bad { background: var(--red); }
-    .assessment { padding: 17px 20px; }
-    .assessment p { margin: 0 0 8px; font-weight: 850; }
-    .assessment ul {
-      margin: 0;
-      padding-left: 20px;
-      font-size: .82rem;
-      line-height: 1.5;
-    }
-    .details {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .detail {
-      padding: 14px 16px;
-      border-right: 2px solid var(--ink);
-      border-bottom: 2px solid var(--ink);
-    }
-    .detail:nth-child(3n) { border-right: 0; }
-    .detail:nth-last-child(-n + 3) { border-bottom: 0; }
-    .detail span {
-      display: block;
-      font-size: .64rem;
-      font-weight: 850;
-      text-transform: uppercase;
-      color: #626975;
-    }
-    .detail b { display: block; margin-top: 4px; font-size: 1rem; }
-
-    .viewer-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 11px 14px;
-      border-bottom: 3px solid var(--ink);
-      background: var(--blue);
-    }
-    .viewer-head h2 {
-      margin: 0;
-      font-size: .92rem;
-      text-transform: uppercase;
-    }
-    .viewer-head span { font-size: .67rem; font-weight: 800; text-align: right; }
-    #viewer {
-      position: relative;
-      height: min(62vw, 570px);
-      min-height: 380px;
-      overflow: hidden;
-      background: #d9f4f1;
-      cursor: grab;
-      touch-action: none;
-    }
-    #viewer:active { cursor: grabbing; }
-    #viewer canvas { display: block; width: 100%; height: 100%; }
-    .legend {
-      position: absolute;
-      left: 12px;
-      bottom: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      pointer-events: none;
-    }
-    .legend span {
-      padding: 5px 8px;
-      border: 2px solid var(--ink);
-      background: var(--white);
-      font-size: .65rem;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .legend i {
-      display: inline-block;
-      width: 9px;
-      height: 9px;
-      margin-right: 5px;
-      border: 1px solid var(--ink);
-      vertical-align: -1px;
-    }
-    .disclaimer {
-      margin-top: 24px;
-      padding: 15px 18px;
-      border: 3px solid var(--ink);
-      background: var(--yellow);
-      box-shadow: 4px 4px 0 var(--ink);
-      font-size: .76rem;
-      font-weight: 700;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 960px) {
-      .hero, .workspace { grid-template-columns: 1fr; }
-      .hero p { max-width: 680px; }
-    }
-    @media (max-width: 620px) {
-      main { width: min(100% - 20px, 1420px); padding-top: 28px; }
-      .topbar { padding: 12px; }
-      .tag { display: none; }
-      .field-grid { grid-template-columns: 1fr; }
-      .field.full { grid-column: auto; }
-      .metrics { grid-template-columns: 1fr 1fr; }
-      .metric:nth-child(2) { border-right: 0; }
-      .metric:nth-child(-n + 2) { border-bottom: 3px solid var(--ink); }
-      .status-row { grid-template-columns: 1fr; }
-      .verdict { border-right: 0; border-bottom: 3px solid var(--ink); }
-      .details { grid-template-columns: 1fr 1fr; }
-      .detail:nth-child(3n) { border-right: 2px solid var(--ink); }
-      .detail:nth-child(2n) { border-right: 0; }
-      .detail:nth-last-child(-n + 3) { border-bottom: 2px solid var(--ink); }
-      .detail:nth-last-child(-n + 2) { border-bottom: 0; }
-      #viewer { min-height: 330px; }
-    }
-  </style>
+  <meta name="description" content="Kalkulator tangga rumah dengan model 3D dan cek kenyamanan." />
+  <title>Countangga</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Countangga↗</div>
-    <div class="tag">Hitung dulu, bangun kemudian.</div>
+    <div class="brand">Countangga</div>
+    <p class="lede">Klik field di kiri, 3D di kanan nunjukin bagian mana.</p>
   </header>
 
-  <main>
-    <section class="hero">
-      <h1>Naik nyaman.<br />Bukan nekat.</h1>
-      <p>Masukkan ukuran rumahmu. Countangga menghitung jumlah anak tangga, ukuran pijakan, posisi belokan, dan mengecek apakah proporsinya nyaman.</p>
+  <main class="layout">
+    <section class="panel form-panel">
+      <form id="stair-form">
+        <label class="field" data-part="floorHeight">
+          <span>Tinggi lantai 1 → 2</span>
+          <span class="input-wrap">
+            <input id="floorHeight" type="number" min="180" max="600" step="1" value="320" required />
+            <em>cm</em>
+          </span>
+        </label>
+        <label class="field" data-part="openingLength">
+          <span>Panjang lubang L2</span>
+          <span class="input-wrap">
+            <input id="openingLength" type="number" min="150" max="1200" step="1" value="340" required />
+            <em>cm</em>
+          </span>
+        </label>
+        <label class="field" data-part="stairWidth">
+          <span>Lebar tangga</span>
+          <span class="input-wrap">
+            <input id="stairWidth" type="number" min="60" max="250" step="1" value="90" required />
+            <em>cm</em>
+          </span>
+        </label>
+        <label class="field" data-part="treadDepth">
+          <span>Kedalaman pijakan</span>
+          <span class="input-wrap">
+            <input id="treadDepth" type="number" min="18" max="40" step=".5" value="27" required />
+            <em>cm</em>
+          </span>
+        </label>
+        <label class="field" data-part="turnAngle">
+          <span>Bentuk belok</span>
+          <select id="turnAngle">
+            <option value="90">L — belok 90°</option>
+            <option value="180">U — belok 180°</option>
+          </select>
+        </label>
+        <label class="field" data-part="turnStep">
+          <span>Belok setelah anak ke-</span>
+          <span class="input-wrap">
+            <input id="turnStep" type="number" min="2" max="30" step="1" value="9" required />
+            <em>anak</em>
+          </span>
+        </label>
+        <button type="submit">Hitung</button>
+      </form>
     </section>
 
-    <div class="workspace">
-      <section class="panel" aria-labelledby="input-title">
-        <h2 class="panel-title" id="input-title">01 / Ukuran yang tersedia</h2>
-        <form class="form-body" id="stair-form">
-          <div class="field-grid">
-            <div class="field">
-              <label for="floorHeight">Tinggi antar lantai</label>
-              <div class="input-wrap">
-                <input id="floorHeight" type="number" min="180" max="600" step="1" value="320" required />
-                <span class="unit">cm</span>
-              </div>
-              <small class="hint">Lantai jadi bawah ke lantai jadi atas.</small>
-            </div>
-            <div class="field">
-              <label for="openingLength">Panjang lubang tangga</label>
-              <div class="input-wrap">
-                <input id="openingLength" type="number" min="150" max="1200" step="1" value="340" required />
-                <span class="unit">cm</span>
-              </div>
-              <small class="hint">Sisi terpanjang bukaan lantai 2.</small>
-            </div>
-            <div class="field">
-              <label for="stairWidth">Lebar tangga</label>
-              <div class="input-wrap">
-                <input id="stairWidth" type="number" min="60" max="250" step="1" value="90" required />
-                <span class="unit">cm</span>
-              </div>
-              <small class="hint">Nyaman rumah tinggal: ≥ 90 cm.</small>
-            </div>
-            <div class="field">
-              <label for="treadDepth">Target lebar pijakan</label>
-              <div class="input-wrap">
-                <input id="treadDepth" type="number" min="18" max="40" step=".5" value="27" required />
-                <span class="unit">cm</span>
-              </div>
-              <small class="hint">Kedalaman telapak, bukan lebar tangga.</small>
-            </div>
-            <div class="field">
-              <label for="turnAngle">Model belokan</label>
-              <select id="turnAngle">
-                <option value="90">Belok 90° — bentuk L</option>
-                <option value="180">Belok 180° — bentuk U</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="turnStep">Belok setelah anak ke-</label>
-              <div class="input-wrap">
-                <input id="turnStep" type="number" min="2" max="30" step="1" value="9" required />
-                <span class="unit">anak</span>
-              </div>
-              <small class="hint">Belokan memakai bordes datar.</small>
-            </div>
-          </div>
-          <button class="calculate" type="submit">Hitung tangga →</button>
-        </form>
-      </section>
-
-      <div class="results" aria-live="polite">
-        <section class="panel">
-          <h2 class="panel-title">02 / Hasil perhitungan</h2>
-          <div class="metrics">
-            <div class="metric"><small>Jumlah kenaikan</small><strong id="riseCount">18</strong></div>
-            <div class="metric"><small>Tinggi per anak</small><strong id="riserHeight">17,8 cm</strong></div>
-            <div class="metric"><small>Lebar pijakan</small><strong id="treadResult">27 cm</strong></div>
-            <div class="metric"><small>Kemiringan</small><strong id="pitch">33,4°</strong></div>
-          </div>
-          <div class="status-row">
-            <div class="verdict" id="verdict">Ideal</div>
-            <div class="assessment">
-              <p id="summary">Proporsi tangga masuk rentang nyaman.</p>
-              <ul id="checks"></ul>
-            </div>
-          </div>
-          <div class="details">
-            <div class="detail"><span>Anak tangga pijakan</span><b id="treadCount">17 buah</b></div>
-            <div class="detail"><span>Rumus 2T + L</span><b id="blondel">62,6 cm</b></div>
-            <div class="detail"><span>Bordes</span><b id="landing">90 × 90 cm</b></div>
-            <div class="detail"><span>Jalur sebelum belok</span><b id="firstRun">243 cm</b></div>
-            <div class="detail"><span>Jalur setelah belok</span><b id="secondRun">216 cm</b></div>
-            <div class="detail"><span>Kebutuhan lubang</span><b id="requiredOpening">333 cm</b></div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="viewer-head">
-            <h2>03 / Model 3D</h2>
-            <span>Geser untuk putar · scroll/pinch untuk zoom</span>
-          </div>
-          <div id="viewer">
-            <div class="legend">
-              <span><i style="background:#20c7c7"></i>Anak tangga</span>
-              <span><i style="background:#ffd84d"></i>Bordes</span>
-              <span><i style="background:#ff6b5e"></i>Batas lubang</span>
-            </div>
-          </div>
-        </section>
+    <section class="panel viewer-panel">
+      <div class="viewer-head">
+        <strong id="caption">Klik field untuk lihat bagiannya</strong>
+        <span>drag = putar</span>
       </div>
-    </div>
+      <div id="viewer"></div>
+    </section>
 
-    <aside class="disclaimer">
-      Catatan: hasil ini adalah estimasi geometri awal, bukan gambar kerja struktur. Tinggi bebas kepala, ketebalan pelat, railing, struktur penopang, dan aturan bangunan setempat belum dihitung. Konfirmasi ukuran akhir dengan arsitek atau insinyur sipil sebelum dibangun.
-    </aside>
+    <section class="panel result-panel" aria-live="polite">
+      <div class="verdict" id="verdict">Ideal</div>
+      <div class="metrics">
+        <div><small>Anak tangga</small><b id="riseCount">18</b></div>
+        <div><small>Tinggi anak</small><b id="riserHeight">17,8 cm</b></div>
+        <div><small>Pijakan</small><b id="treadResult">27 cm</b></div>
+        <div><small>Kemiringan</small><b id="pitch">33°</b></div>
+        <div><small>2T + L</small><b id="blondel">63 cm</b></div>
+        <div><small>Butuh lubang</small><b id="requiredOpening">333 cm</b></div>
+      </div>
+      <ul id="checks"></ul>
+    </section>
   </main>
+
+  <p class="disclaimer">Estimasi geometri, bukan gambar kerja. Cek ulang ke arsitek/sipil sebelum bangun.</p>
 
   <script type="importmap">
     {
@@ -458,295 +94,6 @@
       }
     }
   </script>
-  <script type="module">
-    import * as THREE from "three";
-    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-
-    const $ = (id) => document.getElementById(id);
-    const form = $("stair-form");
-    const viewer = $("viewer");
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xd9f4f1);
-
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
-    camera.position.set(7, 6, 8);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    viewer.prepend(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.07;
-    controls.minDistance = 4;
-    controls.maxDistance = 24;
-    controls.target.set(1.5, 1.4, 0);
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x48626a, 2.2));
-    const sun = new THREE.DirectionalLight(0xffffff, 3.2);
-    sun.position.set(5, 9, 6);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    scene.add(sun);
-
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshStandardMaterial({ color: 0xf3f0e8, roughness: 1 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    const grid = new THREE.GridHelper(30, 30, 0x111827, 0x8ba9a7);
-    grid.position.y = 0.002;
-    grid.material.opacity = 0.28;
-    grid.material.transparent = true;
-    scene.add(grid);
-
-    let model = new THREE.Group();
-    scene.add(model);
-
-    const format = (value, digits = 1) =>
-      new Intl.NumberFormat("id-ID", { maximumFractionDigits: digits }).format(value);
-
-    function readInputs() {
-      return {
-        height: Number($("floorHeight").value),
-        opening: Number($("openingLength").value),
-        width: Number($("stairWidth").value),
-        tread: Number($("treadDepth").value),
-        angle: Number($("turnAngle").value),
-        turnAt: Number($("turnStep").value)
-      };
-    }
-
-    function calculate(data) {
-      let best = null;
-      const idealRises = Math.round(data.height / 17.5);
-
-      for (let rises = Math.max(2, idealRises - 4); rises <= idealRises + 4; rises++) {
-        const riser = data.height / rises;
-        const blondel = 2 * riser + data.tread;
-        const score =
-          Math.abs(riser - 17.5) * 2 +
-          Math.abs(blondel - 63) +
-          (riser < 15 || riser > 19 ? 30 : 0);
-        if (!best || score < best.score) best = { rises, riser, blondel, score };
-      }
-
-      const treadCount = best.rises - 1;
-      const turnAt = Math.max(2, Math.min(Math.round(data.turnAt), treadCount - 2));
-      const afterTurn = treadCount - turnAt;
-      const firstRun = turnAt * data.tread;
-      const secondRun = afterTurn * data.tread;
-      const landingDepth = data.width;
-      const requiredOpening =
-        data.angle === 90
-          ? Math.max(firstRun + landingDepth, secondRun + landingDepth)
-          : Math.max(firstRun, secondRun) + landingDepth;
-      const footprintWidth =
-        data.angle === 90
-          ? Math.max(data.width, secondRun)
-          : data.width * 2 + 15;
-      const pitch = Math.atan(best.riser / data.tread) * 180 / Math.PI;
-
-      return {
-        ...data,
-        ...best,
-        treadCount,
-        turnAt,
-        afterTurn,
-        firstRun,
-        secondRun,
-        landingDepth,
-        requiredOpening,
-        footprintWidth,
-        pitch
-      };
-    }
-
-    function assess(r) {
-      const checks = [];
-      let severity = 0;
-      const add = (ok, warning, success) => {
-        checks.push(ok ? `✓ ${success}` : `! ${warning}`);
-        if (!ok) severity++;
-      };
-
-      add(r.riser >= 15 && r.riser <= 19,
-        `Tinggi anak ${format(r.riser)} cm di luar rentang umum 15–19 cm.`,
-        `Tinggi anak ${format(r.riser)} cm masuk rentang umum 15–19 cm.`);
-      add(r.tread >= 25 && r.tread <= 30,
-        `Pijakan ${format(r.tread)} cm; rentang nyaman umumnya 25–30 cm.`,
-        `Pijakan ${format(r.tread)} cm cukup untuk telapak kaki.`);
-      add(r.blondel >= 60 && r.blondel <= 65,
-        `Nilai 2T + L = ${format(r.blondel)} cm; target kenyamanan 60–65 cm.`,
-        `Rumus kenyamanan 2T + L = ${format(r.blondel)} cm terpenuhi.`);
-      add(r.pitch >= 30 && r.pitch <= 40,
-        `Kemiringan ${format(r.pitch)}°; target tangga rumah sekitar 30–40°.`,
-        `Kemiringan ${format(r.pitch)}° berada di zona nyaman.`);
-      add(r.width >= 90,
-        `Lebar ${format(r.width, 0)} cm cukup sempit; usahakan minimal 90 cm.`,
-        `Lebar tangga ${format(r.width, 0)} cm memadai untuk rumah.`);
-      add(r.requiredOpening <= r.opening,
-        `Butuh sekitar ${format(r.requiredOpening, 0)} cm, melebihi lubang ${format(r.opening, 0)} cm.`,
-        `Kebutuhan panjang ${format(r.requiredOpening, 0)} cm muat dalam lubang.`);
-
-      if (r.turnAt !== r.turnAtOriginal) severity++;
-      return { severity, checks };
-    }
-
-    function updateText(r) {
-      const assessment = assess(r);
-      $("riseCount").textContent = r.rises;
-      $("riserHeight").textContent = `${format(r.riser)} cm`;
-      $("treadResult").textContent = `${format(r.tread)} cm`;
-      $("pitch").textContent = `${format(r.pitch)}°`;
-      $("treadCount").textContent = `${r.treadCount} buah`;
-      $("blondel").textContent = `${format(r.blondel)} cm`;
-      $("landing").textContent = `${format(r.width, 0)} × ${format(r.landingDepth, 0)} cm`;
-      $("firstRun").textContent = `${format(r.firstRun, 0)} cm (${r.turnAt} anak)`;
-      $("secondRun").textContent = `${format(r.secondRun, 0)} cm (${r.afterTurn} anak)`;
-      $("requiredOpening").textContent = `${format(r.requiredOpening, 0)} cm`;
-      $("turnStep").value = r.turnAt;
-
-      const verdict = $("verdict");
-      verdict.className = "verdict";
-      if (assessment.severity === 0) {
-        verdict.textContent = "Ideal";
-        $("summary").textContent = "Semua pemeriksaan dasar masuk rentang nyaman.";
-      } else if (assessment.severity <= 2) {
-        verdict.textContent = "Perlu cek";
-        verdict.classList.add("warn");
-        $("summary").textContent = "Bisa dipakai sebagai awal, tetapi ada ukuran yang perlu disesuaikan.";
-      } else {
-        verdict.textContent = "Belum ideal";
-        verdict.classList.add("bad");
-        $("summary").textContent = "Geometri ini perlu direvisi sebelum dijadikan acuan.";
-      }
-      $("checks").innerHTML = assessment.checks.map((item) => `<li>${item}</li>`).join("");
-    }
-
-    function makeBox(width, height, depth, color, x, y, z) {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(width, height, depth),
-        new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.02 })
-      );
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(mesh.geometry),
-        new THREE.LineBasicMaterial({ color: 0x111827 })
-      );
-      mesh.add(edges);
-      model.add(mesh);
-      return mesh;
-    }
-
-    function buildModel(r) {
-      scene.remove(model);
-      model.traverse((object) => {
-        if (object.geometry) object.geometry.dispose();
-        if (object.material) object.material.dispose();
-      });
-      model = new THREE.Group();
-      scene.add(model);
-
-      const scale = 1 / 100;
-      const w = r.width * scale;
-      const tread = r.tread * scale;
-      const rise = r.riser * scale;
-      let x = 0;
-      let z = 0;
-      let y = 0;
-
-      for (let i = 0; i < r.turnAt; i++) {
-        y = (i + 1) * rise;
-        x = i * tread + tread / 2;
-        makeBox(tread, y, w, 0x20c7c7, x, y / 2, z);
-      }
-
-      const landingX = r.turnAt * tread + w / 2;
-      const landingY = r.turnAt * rise;
-      makeBox(w, Math.max(landingY, .06), w, 0xffd84d, landingX, landingY / 2, 0);
-
-      if (r.angle === 90) {
-        for (let j = 0; j < r.afterTurn; j++) {
-          y = (r.turnAt + j + 1) * rise;
-          z = -(w / 2 + j * tread + tread / 2);
-          makeBox(w, y, tread, 0x20c7c7, landingX, y / 2, z);
-        }
-      } else {
-        const returnZ = -(w + .15);
-        for (let j = 0; j < r.afterTurn; j++) {
-          y = (r.turnAt + j + 1) * rise;
-          x = landingX + w / 2 - j * tread - tread / 2;
-          makeBox(tread, y, w, 0x20c7c7, x, y / 2, returnZ);
-        }
-        makeBox(w, Math.max(landingY, .06), w + .15, 0xffd84d, landingX, landingY / 2, returnZ / 2);
-      }
-
-      const openingLength = r.opening * scale;
-      const openingWidth = r.footprintWidth * scale;
-      const boundary = new THREE.LineSegments(
-        new THREE.EdgesGeometry(new THREE.BoxGeometry(openingLength, .03, openingWidth)),
-        new THREE.LineBasicMaterial({ color: 0xff3f35 })
-      );
-      boundary.position.set(openingLength / 2, r.height * scale + .03, r.angle === 90 ? -openingWidth / 2 + w / 2 : -(openingWidth / 2 - w / 2));
-      model.add(boundary);
-
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      controls.target.copy(center);
-      const distance = Math.max(size.x, size.y, size.z) * 2.3;
-      camera.position.set(center.x + distance, center.y + distance * .65, center.z + distance);
-      camera.near = Math.max(distance / 100, .05);
-      camera.far = distance * 20;
-      camera.updateProjectionMatrix();
-      controls.update();
-    }
-
-    function update() {
-      if (!form.reportValidity()) return;
-      const raw = readInputs();
-      const r = calculate({ ...raw, turnAtOriginal: raw.turnAt });
-      updateText(r);
-      buildModel(r);
-    }
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      update();
-    });
-
-    form.addEventListener("input", () => {
-      clearTimeout(form.updateTimer);
-      form.updateTimer = setTimeout(update, 180);
-    });
-
-    function resize() {
-      const width = viewer.clientWidth;
-      const height = viewer.clientHeight;
-      renderer.setSize(width, height, false);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-    }
-    new ResizeObserver(resize).observe(viewer);
-
-    function animate() {
-      controls.update();
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-
-    resize();
-    update();
-    animate();
-  </script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
