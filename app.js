@@ -34,7 +34,7 @@ const PARTS = {
   },
   turnStep: {
     keys: ["landing", "run1"],
-    caption: "Bordes datar setelah anak tangga ini"
+    caption: "Bordes jadi anak tangga nomor ini, lalu belok"
   }
 };
 
@@ -118,9 +118,10 @@ function calculate(data) {
   }
 
   const treadCount = best.rises - 1;
-  const turnAt = Math.max(2, Math.min(Math.round(data.turnAt), Math.max(2, treadCount - 2)));
+  const turnAt = Math.max(2, Math.min(Math.round(data.turnAt), Math.max(2, treadCount - 1)));
+  const beforeTurn = turnAt - 1;
   const afterTurn = Math.max(1, treadCount - turnAt);
-  const firstRun = turnAt * data.tread;
+  const firstRun = beforeTurn * data.tread;
   const secondRun = afterTurn * data.tread;
   const landingDepth = data.width;
   const requiredOpening =
@@ -138,6 +139,7 @@ function calculate(data) {
     ...best,
     treadCount,
     turnAt,
+    beforeTurn,
     afterTurn,
     firstRun,
     secondRun,
@@ -279,7 +281,7 @@ function buildModel(r) {
   dimLine(new THREE.Vector3(-0.25, 0, heightZ), new THREE.Vector3(-0.25, H, heightZ), ["height"]);
   addLabel(`tinggi ${format(r.height, 0)} cm`, -0.25, H / 2, -dir * 0.72, ["height"]);
 
-  for (let i = 0; i < r.turnAt; i++) {
+  for (let i = 0; i < r.beforeTurn; i++) {
     const y = (i + 1) * rise;
     const x = i * tread + tread / 2;
     const keys = i === 0 ? ["step", "run1", "tread", "width"] : ["step", "run1"];
@@ -287,10 +289,11 @@ function buildModel(r) {
     addLabel(String(i + 1), x, y + 0.03, -dir * (w / 2 - 0.04), keys, "step-num");
   }
 
-  const landingX = r.turnAt * tread + w / 2;
+  const landingX = r.beforeTurn * tread + w / 2;
   const landingY = r.turnAt * rise;
-  makeBox(w, Math.max(landingY, 0.06), w, 0xffd84d, landingX, landingY / 2, 0, ["landing"]);
-  addLabel("bordes", landingX, landingY + 0.18, 0, ["landing"]);
+  makeBox(w, Math.max(landingY, 0.06), w, 0xffd84d, landingX, landingY / 2, 0, ["landing", "step"]);
+  addLabel(String(r.turnAt), landingX, landingY + 0.03, -dir * (w / 2 - 0.04), ["landing", "step"], "step-num");
+  addLabel("bordes", landingX, landingY + 0.2, 0, ["landing"]);
 
   if (r.angle === 90) {
     for (let j = 0; j < r.afterTurn; j++) {
