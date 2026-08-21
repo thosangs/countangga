@@ -26,7 +26,11 @@ const PARTS = {
   },
   turnAngle: {
     keys: ["landing", "run2"],
-    caption: "Arah belok: L ke samping, U balik arah"
+    caption: "Bentuk belok: L menyamping, U balik arah"
+  },
+  turnDir: {
+    keys: ["landing", "run2"],
+    caption: "Arah belok dari sudut pandang orang yang naik"
   },
   turnStep: {
     keys: ["landing", "run1"],
@@ -38,6 +42,7 @@ let activePart = null;
 let framed = false;
 let userMoved = false;
 let focusBox = null;
+let viewSign = 1;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd4f1ee);
@@ -93,6 +98,7 @@ function readInputs() {
     width: Number($("stairWidth").value),
     tread: Number($("treadDepth").value),
     angle: Number($("turnAngle").value),
+    dir: Number($("turnDir").value),
     turnAt: Number($("turnStep").value)
   };
 }
@@ -242,7 +248,10 @@ function buildModel(r) {
 
   const openingL = r.opening * s;
   const openingW = r.footprintWidth * s;
-  const openZ = r.angle === 90 ? -openingW / 2 + w / 2 : -(openingW / 2 - w / 2);
+  const dir = r.dir < 0 ? -1 : 1;
+  if (viewSign !== -dir && !userMoved) framed = false;
+  viewSign = -dir;
+  const openZ = dir * (openingW / 2 - w / 2);
   const openX = openingL / 2;
 
   makeBox(openingL + 1.6, 0.04, openingW + 1.6, 0xd9d4c6, openX, 0.02, openZ, ["floor1"]);
@@ -258,22 +267,24 @@ function buildModel(r) {
   opening.position.set(openX, H + 0.02, openZ);
   tag(opening, ["opening"]);
   model.add(opening);
+  const openEdge = openZ + dir * (openingW / 2 + 0.12);
   dimLine(
-    new THREE.Vector3(0, H + 0.18, openZ + openingW / 2 + 0.12),
-    new THREE.Vector3(openingL, H + 0.18, openZ + openingW / 2 + 0.12),
+    new THREE.Vector3(0, H + 0.18, openEdge),
+    new THREE.Vector3(openingL, H + 0.18, openEdge),
     ["opening"]
   );
-  addLabel(`lubang ${format(r.opening, 0)} cm`, openX, H + 0.32, openZ + openingW / 2 + 0.12, ["opening"]);
+  addLabel(`lubang ${format(r.opening, 0)} cm`, openX, H + 0.32, openEdge, ["opening"]);
 
-  dimLine(new THREE.Vector3(-0.25, 0, 0.55), new THREE.Vector3(-0.25, H, 0.55), ["height"]);
-  addLabel(`tinggi ${format(r.height, 0)} cm`, -0.25, H / 2, 0.72, ["height"]);
+  const heightZ = -dir * 0.55;
+  dimLine(new THREE.Vector3(-0.25, 0, heightZ), new THREE.Vector3(-0.25, H, heightZ), ["height"]);
+  addLabel(`tinggi ${format(r.height, 0)} cm`, -0.25, H / 2, -dir * 0.72, ["height"]);
 
   for (let i = 0; i < r.turnAt; i++) {
     const y = (i + 1) * rise;
     const x = i * tread + tread / 2;
     const keys = i === 0 ? ["step", "run1", "tread", "width"] : ["step", "run1"];
     makeBox(tread, y, w, 0x20c7c7, x, y / 2, 0, keys);
-    addLabel(String(i + 1), x, y + 0.03, w / 2 - 0.04, keys, "step-num");
+    addLabel(String(i + 1), x, y + 0.03, -dir * (w / 2 - 0.04), keys, "step-num");
   }
 
   const landingX = r.turnAt * tread + w / 2;
@@ -284,12 +295,12 @@ function buildModel(r) {
   if (r.angle === 90) {
     for (let j = 0; j < r.afterTurn; j++) {
       const y = (r.turnAt + j + 1) * rise;
-      const z = -(w / 2 + j * tread + tread / 2);
+      const z = dir * (w / 2 + j * tread + tread / 2);
       makeBox(w, y, tread, 0x20c7c7, landingX, y / 2, z, ["step", "run2"]);
       addLabel(String(r.turnAt + j + 1), landingX + w / 2 - 0.04, y + 0.03, z, ["step", "run2"], "step-num");
     }
   } else {
-    const returnZ = -(w + gap);
+    const returnZ = dir * (w + gap);
     for (let j = 0; j < r.afterTurn; j++) {
       const y = (r.turnAt + j + 1) * rise;
       const x = landingX + w / 2 - j * tread - tread / 2;
@@ -306,17 +317,18 @@ function buildModel(r) {
   );
   addLabel(`lebar ${format(r.width, 0)} cm`, tread / 2, rise + 0.22, 0, ["width"]);
 
+  const treadZ = -dir * (w / 2 + 0.12);
   dimLine(
-    new THREE.Vector3(0, rise + 0.08, -w / 2 - 0.12),
-    new THREE.Vector3(tread, rise + 0.08, -w / 2 - 0.12),
+    new THREE.Vector3(0, rise + 0.08, treadZ),
+    new THREE.Vector3(tread, rise + 0.08, treadZ),
     ["tread"]
   );
-  addLabel(`pijakan ${format(r.tread)} cm`, tread / 2, rise + 0.22, -w / 2 - 0.2, ["tread"]);
+  addLabel(`pijakan ${format(r.tread)} cm`, tread / 2, rise + 0.22, -dir * (w / 2 + 0.2), ["tread"]);
 
   applyHighlight();
   focusBox = new THREE.Box3(
-    new THREE.Vector3(-0.3, 0, Math.min(openZ - openingW / 2, -w)),
-    new THREE.Vector3(Math.max(openingL, landingX + w / 2), H, Math.max(w, 0.6))
+    new THREE.Vector3(-0.3, 0, Math.min(openZ - openingW / 2, -w, -0.6)),
+    new THREE.Vector3(Math.max(openingL, landingX + w / 2), H, Math.max(openZ + openingW / 2, w, 0.6))
   );
   if (!framed) frameCamera(focusBox);
 }
@@ -357,7 +369,7 @@ function frameCamera(box) {
   controls.target.copy(center);
   controls.minDistance = dist * 0.35;
   controls.maxDistance = dist * 3;
-  camera.position.set(center.x + dist * 0.62, center.y + dist * 0.72, center.z + dist * 0.72);
+  camera.position.set(center.x + dist * 0.62, center.y + dist * 0.72, center.z + dist * 0.72 * viewSign);
   camera.near = Math.max(dist / 100, 0.05);
   camera.far = dist * 30;
   camera.updateProjectionMatrix();
